@@ -34,5 +34,6 @@ public class ChooseSettingsBean {
         public long id;
         public String equipmentnumber;
         public String names;
+        public int villageId;
     }
 }

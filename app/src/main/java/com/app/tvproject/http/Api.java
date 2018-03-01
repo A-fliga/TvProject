@@ -85,5 +85,5 @@ public interface Api {
      * 更新app
      */
     @GET("getTouchUpdate")
-    Observable<BaseEntity<UpdateBean>> getUpdateInfo();
+    Observable<BaseEntity<UpdateBean>> getUpdateInfo(@QueryMap Map<String, String> map);
 }

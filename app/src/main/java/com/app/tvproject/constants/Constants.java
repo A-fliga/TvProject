@@ -35,7 +35,7 @@ public final class Constants {
 
     public static final String EQUIPMENT_ID = "EQUIPMENT_ID";//保存设备ID
 
-
+    public static final String EQ_VOICE = "EQ_VOICE";//音量
     //推送过来为何种类型
     public static final int PUBLISH_TYPE_NOTICE = 3; //通知
     public static final int PUBLISH_TYPE_INFORMATION = 1; //资讯

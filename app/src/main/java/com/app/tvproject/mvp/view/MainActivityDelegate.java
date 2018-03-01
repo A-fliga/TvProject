@@ -140,7 +140,8 @@ public class MainActivityDelegate extends ViewDelegate {
         getActivity().runOnUiThread(() -> {
             if (isImg) {
                 tv_logo_title.setTextColor(getActivity().getResources().getColor(R.color.color_black));
-            } else tv_logo_title.setTextColor(getActivity().getResources().getColor(R.color.color_title));
+            } else
+                tv_logo_title.setTextColor(getActivity().getResources().getColor(R.color.color_title));
         });
 
     }
@@ -163,7 +164,7 @@ public class MainActivityDelegate extends ViewDelegate {
                 if (content.replaceAll(" ", "").isEmpty())
                     tv_tag.setVisibility(View.GONE);
                 else tv_tag.setVisibility(View.VISIBLE);
-            }
+            } else tv_tag.setText("");
         });
     }
 

@@ -35,19 +35,47 @@ public class SharedPreferencesUtil {
      * @return
      */
     public static String getJpushAlias() {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
         return sharedPreference.getString(Constants.JI_GUANG_TAG, null);
     }
 
+    /**
+     * 保存设备音量
+     */
+    public static void saveVoice(int voice) {
+        if (sharedPreference == null) {
+            sharedPreference = MyApplication.getContext()
+                    .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
+        }
+        editor = sharedPreference.edit();
+        editor.putInt(Constants.EQ_VOICE, voice);
+        editor.apply();
+    }
+
+
+    /**
+     * 取出音量
+     *
+     * @param
+     * @return
+     */
+    public static int getVoice() {
+        if (sharedPreference == null) {
+            sharedPreference = MyApplication.getContext()
+                    .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
+        }
+        return sharedPreference.getInt(Constants.EQ_VOICE, 0);
+    }
+
 
     /**
      * 保存正在播放的资讯ID
      */
-    public static void saveInformationId(long informationId){
-        if(sharedPreference == null) {
+    public static void saveInformationId(long informationId) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -60,7 +88,7 @@ public class SharedPreferencesUtil {
      * 保存正在播放的资讯数组下标
      */
     public static void saveInfoPosition(int position) {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -73,8 +101,8 @@ public class SharedPreferencesUtil {
      * 保存正在播放的通知id
      */
 
-    public static void saveNoticeId(long noticeId){
-        if(sharedPreference == null) {
+    public static void saveNoticeId(long noticeId) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -86,10 +114,11 @@ public class SharedPreferencesUtil {
 
     /**
      * 保存正在播放的通知数组下标
+     *
      * @param position
      */
-    public static void saveNoticePosition(int position){
-        if(sharedPreference == null) {
+    public static void saveNoticePosition(int position) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -99,17 +128,16 @@ public class SharedPreferencesUtil {
     }
 
 
-
     /**
      * 取出正在播放的通知id
      */
 
-    public static long getNoticeId(){
-        if(sharedPreference == null) {
+    public static long getNoticeId() {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
-        return sharedPreference.getLong(Constants.NOTICE_ID,0);
+        return sharedPreference.getLong(Constants.NOTICE_ID, 0);
     }
 
     /**
@@ -119,7 +147,7 @@ public class SharedPreferencesUtil {
      * @return
      */
     public static int getNoticePosition() {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -133,7 +161,7 @@ public class SharedPreferencesUtil {
      * @return
      */
     public static int getInfoPosition() {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -146,8 +174,8 @@ public class SharedPreferencesUtil {
      * @param
      * @return
      */
-    public static long getInformationId(){
-        if(sharedPreference == null) {
+    public static long getInformationId() {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -155,12 +183,11 @@ public class SharedPreferencesUtil {
     }
 
 
-
     /**
      * 清空除了设备以外的下标
      */
     public static void resetShared() {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -171,11 +198,12 @@ public class SharedPreferencesUtil {
         editor.remove(Constants.NOTICE_POSITION);
         editor.apply();
     }
+
     /**
      * 保存设备id
      */
-    public static void saveEqId(Context context,long eqId) {
-        if(sharedPreference == null) {
+    public static void saveEqId(Context context, long eqId) {
+        if (sharedPreference == null) {
             sharedPreference = context
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }
@@ -183,6 +211,7 @@ public class SharedPreferencesUtil {
         editor.putLong(Constants.EQUIPMENT_ID, eqId);
         editor.apply();
     }
+
     /**
      * 取出设备ID
      *
@@ -190,7 +219,7 @@ public class SharedPreferencesUtil {
      * @return
      */
     public static long getEqId() {
-        if(sharedPreference == null) {
+        if (sharedPreference == null) {
             sharedPreference = MyApplication.getContext()
                     .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
         }

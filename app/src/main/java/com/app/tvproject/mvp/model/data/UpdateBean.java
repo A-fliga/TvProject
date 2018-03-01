@@ -5,15 +5,22 @@ package com.app.tvproject.mvp.model.data;
  */
 
 public class UpdateBean {
+    /**
+     * id : 3
+     * versionNumber : 1.1.0
+     * intro : 显示屏
+     * type : 2
+     * resourceUrl : http://localhost:8083/wzt/asdasd
+     * createDate : 1518146773000
+     * state : 1
+     */
 
     public int id;
-    public String versionsnum;
-    public String appurl;
-    public int status;
-    public long creatTime;
-    public String creatBy;
-    public Object updateTime;
-    public Object updateBy;
-    public int delstatus;
-    public String appdescribe;
+    public String versionNumber;
+    public String intro;
+    public int type;
+    public String resourceUrl;
+    public long createDate;
+    public int state;
+
 }

@@ -122,6 +122,7 @@ public final class HttpClient {
         queryMap.put("type",type);
         if(id != null)
             queryMap.put("id",id);
+        queryMap.put("eqType", "2");
         Observable observable = mApi.getSettingsData(queryMap);
         toSubscribe(observable,subscriber);
     }
@@ -203,7 +204,9 @@ public final class HttpClient {
      * 更新APP
      */
     public void getUpdateInfo(Subscriber<BaseEntity<UpdateBean>> subscriber){
-        Observable observable = mApi.getUpdateInfo();
+        HashMap<String,String> queryMap = new HashMap<>();
+        queryMap.put("type","2");
+        Observable observable = mApi.getUpdateInfo(queryMap);
         toSubscribe(observable,subscriber);
     }
 }

@@ -67,7 +67,7 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
                 LogUtil.d("idceshi","fragment里的id："+mediaPlayer.toString());
             }
             try {
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.setDataSource(contentBean.getBgm());
                 mediaPlayer.prepareAsync();
 

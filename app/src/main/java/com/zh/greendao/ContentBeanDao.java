@@ -49,7 +49,7 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
         public final static Property Audiencebelongto = new Property(22, int.class, "audiencebelongto", false, "AUDIENCEBELONGTO");
         public final static Property AudiencebelongtoId = new Property(23, int.class, "audiencebelongtoId", false, "AUDIENCEBELONGTO_ID");
         public final static Property Delstatus = new Property(24, int.class, "delstatus", false, "DELSTATUS");
-        public final static Property Tagname = new Property(25, String.class, "tagname", false, "TAGNAME");
+        public final static Property TagName = new Property(25, String.class, "tagName", false, "TAG_NAME");
         public final static Property Spots = new Property(26, int.class, "spots", false, "SPOTS");
         public final static Property Bgm = new Property(27, String.class, "bgm", false, "BGM");
     }
@@ -92,7 +92,7 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
                 "\"AUDIENCEBELONGTO\" INTEGER NOT NULL ," + // 22: audiencebelongto
                 "\"AUDIENCEBELONGTO_ID\" INTEGER NOT NULL ," + // 23: audiencebelongtoId
                 "\"DELSTATUS\" INTEGER NOT NULL ," + // 24: delstatus
-                "\"TAGNAME\" TEXT," + // 25: tagname
+                "\"TAG_NAME\" TEXT," + // 25: tagName
                 "\"SPOTS\" INTEGER NOT NULL ," + // 26: spots
                 "\"BGM\" TEXT);"); // 27: bgm
     }
@@ -160,9 +160,9 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
         stmt.bindLong(24, entity.getAudiencebelongtoId());
         stmt.bindLong(25, entity.getDelstatus());
  
-        String tagname = entity.getTagname();
-        if (tagname != null) {
-            stmt.bindString(26, tagname);
+        String tagName = entity.getTagName();
+        if (tagName != null) {
+            stmt.bindString(26, tagName);
         }
         stmt.bindLong(27, entity.getSpots());
  
@@ -229,9 +229,9 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
         stmt.bindLong(24, entity.getAudiencebelongtoId());
         stmt.bindLong(25, entity.getDelstatus());
  
-        String tagname = entity.getTagname();
-        if (tagname != null) {
-            stmt.bindString(26, tagname);
+        String tagName = entity.getTagName();
+        if (tagName != null) {
+            stmt.bindString(26, tagName);
         }
         stmt.bindLong(27, entity.getSpots());
  
@@ -274,7 +274,7 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
             cursor.getInt(offset + 22), // audiencebelongto
             cursor.getInt(offset + 23), // audiencebelongtoId
             cursor.getInt(offset + 24), // delstatus
-            cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25), // tagname
+            cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25), // tagName
             cursor.getInt(offset + 26), // spots
             cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27) // bgm
         );
@@ -308,7 +308,7 @@ public class ContentBeanDao extends AbstractDao<ContentBean, Long> {
         entity.setAudiencebelongto(cursor.getInt(offset + 22));
         entity.setAudiencebelongtoId(cursor.getInt(offset + 23));
         entity.setDelstatus(cursor.getInt(offset + 24));
-        entity.setTagname(cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25));
+        entity.setTagName(cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25));
         entity.setSpots(cursor.getInt(offset + 26));
         entity.setBgm(cursor.isNull(offset + 27) ? null : cursor.getString(offset + 27));
      }

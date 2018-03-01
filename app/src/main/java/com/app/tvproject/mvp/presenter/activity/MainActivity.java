@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.app.tvproject.R;
@@ -40,6 +41,7 @@ import com.app.tvproject.utils.DialogUtil;
 import com.app.tvproject.utils.DownLoadFileManager;
 import com.app.tvproject.utils.LogUtil;
 import com.app.tvproject.utils.NetUtil;
+import com.app.tvproject.utils.PackageUtils;
 import com.app.tvproject.utils.SharedPreferencesUtil;
 import com.app.tvproject.utils.ToastUtil;
 import com.baidu.tts.client.SpeechSynthesizer;
@@ -51,7 +53,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -59,7 +63,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import retrofit2.http.Body;
 import rx.Subscriber;
 
 import static com.app.tvproject.myDao.DaoUtil.deleteAll;
@@ -69,6 +72,7 @@ import static com.app.tvproject.myDao.DaoUtil.insertOrReplaceList;
 import static com.app.tvproject.myDao.DaoUtil.loadAllValidInformation;
 import static com.app.tvproject.myDao.DaoUtil.loadAllValidNotice;
 import static com.app.tvproject.myDao.DaoUtil.queryContentById;
+import static com.app.tvproject.utils.PackageUtils.INSTALL_SUCCEEDED;
 
 /**
  * Created by www on 2017/11/16.
@@ -114,12 +118,61 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         DownLoadFileManager.getInstance().stopDownLoad(false);
         viewDelegate.hideMainRl(true);
+//        hideUI();
 //        try {
 //            Runtime.getRuntime().exec("su");
-        initAllData();
+            initAllData();
 //        } catch (IOException e) {
+//            ToastUtil.s("没有root权限");
 //            e.printStackTrace();
 //        }
+
+        //把logCat写到本地
+//        log2File();
+    }
+
+    private void hideUI() {
+        Intent i = new Intent("com.android.systembar.disable");
+        sendBroadcast(i);
+    }
+
+    private void log2File() {
+        try {
+            Process p = Runtime.getRuntime().exec("logcat -d");
+            final InputStream is = p.getInputStream();
+            new Thread() {
+                @Override
+                public void run() {
+                    FileOutputStream os = null;
+                    try {
+                        File file = new File(Constants.DOWNLOAD_DIR + "logCat");
+                        if (!file.exists()) {
+                            file.mkdirs();
+                        }
+                        os = new FileOutputStream(Constants.DOWNLOAD_DIR + "logCat/" + "logMsg.txt");
+                        int len = 0;
+                        byte[] buf = new byte[1024];
+                        while (-1 != (len = is.read(buf))) {
+                            os.write(buf, 0, len);
+                            os.flush();
+                        }
+                    } catch (Exception e) {
+                        Log.d("writelog", "read logcat process failed. message: " + e.getMessage());
+                    } finally {
+                        if (null != os) {
+                            try {
+                                os.close();
+                                os = null;
+                            } catch (IOException e) {
+                                // Do nothing
+                            }
+                        }
+                    }
+                }
+            }.start();
+        } catch (Exception e) {
+            Log.d("writelog", "open logcat process failed. message: " + e.getMessage());
+        }
     }
 
     private void checkUpdate(Boolean deleteAll) {
@@ -137,12 +190,12 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 
                 @Override
                 public void onNext(BaseEntity<UpdateBean> updateBeanBaseEntity) {
-                    if (updateBeanBaseEntity.getResult() != null && Float.parseFloat(AppUtil.getVersionName()) < Float.parseFloat(updateBeanBaseEntity.getResult().versionsnum)) {
+                    if (updateBeanBaseEntity.getResult() != null && Float.parseFloat(AppUtil.getVersionName()) < Float.parseFloat(updateBeanBaseEntity.getResult().versionNumber)) {
                         //开始下载更新并安装
                         LogUtil.d("qidong", "更新");
                         new Thread(() -> {
                             Looper.prepare();
-                            startUpdate(updateBeanBaseEntity.getResult().appurl, deleteAll);
+                            startUpdate(updateBeanBaseEntity.getResult().resourceUrl, deleteAll);
                         }).start();
                     } else {
                         noUpdate(deleteAll);
@@ -163,13 +216,12 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         }
     }
 
-    private void startUpdate(String appUrl, Boolean deleteAll) {
+    private void startUpdate(String apkUrl, Boolean deleteAll) {
         ProgressDialog pd = DialogUtil.showProgressDialog(this);
         runOnUiThread(pd::show);
-        if (DownLoadFileManager.getInstance().downLoadApk(pd, appUrl) && DownLoadFileManager.getInstance().getApkPath() != null) {
+        if (DownLoadFileManager.getInstance().downLoadApk(pd, apkUrl) && DownLoadFileManager.getInstance().getApkPath() != null) {
             closeDialog(pd);
-            if (!startInstallApk(DownLoadFileManager.getInstance().getApkPath())) {
-                ToastUtil.s("安装失败");
+            if (PackageUtils.install(this, DownLoadFileManager.getInstance().getApkPath()) != INSTALL_SUCCEEDED) {
                 noUpdate(deleteAll);
             }
         } else {
@@ -185,61 +237,57 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         });
     }
 
-    private Boolean startInstallApk(String apkPath) {
-        boolean result = false;
-        DataOutputStream dataOutputStream = null;
-        BufferedReader errorStream = null;
-        try {
-            ToastUtil.l("正在执行安装");
-            // 申请su权限
-            Process process = Runtime.getRuntime().exec("su");
-            dataOutputStream = new DataOutputStream(process.getOutputStream());
-            // 执行pm install命令
-            String command = "pm install -r " + apkPath + "\n";
-            dataOutputStream.write(command.getBytes(Charset.forName("utf-8")));
-            dataOutputStream.flush();
-            dataOutputStream.writeBytes("exit\n");
-            dataOutputStream.flush();
-            process.waitFor();
-            errorStream = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String msg = "";
-            String line;
-            // 读取命令的执行结果
-            while ((line = errorStream.readLine()) != null) {
-                msg += line;
-            }
-            Log.d("TAG", "install msg is " + msg);
-            // 如果执行结果中包含Failure字样就认为是安装失败，否则就认为安装成功
-            if (!msg.contains("Failure")) {
-                result = true;
-            }
-        } catch (Exception e) {
-            Log.e("TAG", e.getMessage(), e);
-        } finally {
-            try {
-                if (dataOutputStream != null) {
-                    dataOutputStream.close();
-                }
-                if (errorStream != null) {
-                    errorStream.close();
-                }
-            } catch (IOException e) {
-                Log.e("TAG", e.getMessage(), e);
-            }
-        }
-        return result;
-    }
-
+//    private int startInstallApk(String apkPath) {
+////        boolean result = false;
+////        DataOutputStream dataOutputStream = null;
+////        BufferedReader errorStream = null;
+////        try {
+////            ToastUtil.l("正在执行安装");
+////            // 申请su权限
+////            Process process = Runtime.getRuntime().exec("su");
+////            dataOutputStream = new DataOutputStream(process.getOutputStream());
+////            // 执行pm install命令
+////            String command = "pm install -r " + apkPath + "\n";
+////            dataOutputStream.write(command.getBytes(Charset.forName("utf-8")));
+////            dataOutputStream.flush();
+////            dataOutputStream.writeBytes("exit\n");
+////            dataOutputStream.flush();
+////            process.waitFor();
+////            errorStream = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+////            String msg = "";
+////            String line;
+////            // 读取命令的执行结果
+////            while ((line = errorStream.readLine()) != null) {
+////                msg += line;
+////            }
+////            ToastUtil.l(msg);
+////            Log.d("TAG", "install msg is " + msg);
+////            // 如果执行结果中包含Failure字样就认为是安装失败，否则就认为安装成功
+////            if (!msg.contains("Failure")) {
+////                result = true;
+////            }
+////        } catch (Exception e) {
+////            ToastUtil.s("安装失败" + e.getMessage());
+////            Log.e("TAG", e.getMessage(), e);
+////        } finally {
+////            try {
+////                if (dataOutputStream != null) {
+////                    dataOutputStream.close();
+////                }
+////                if (errorStream != null) {
+////                    errorStream.close();
+////                }
+////            } catch (IOException e) {
+////                Log.e("TAG", e.getMessage(), e);
+////            }
+////        }
+//        int result = ;
+//        return result;
+//    }
 
     private void initServiceData(Boolean deleteAll) {
-        Button btn = (Button) findViewById(R.id.clear_btn);
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deleteAll();
-            }
-        });
-
+        if (SharedPreferencesUtil.getVoice() != 0)
+            ControlVolumeUtil.setControlVolume(this, SharedPreferencesUtil.getVoice(), false);
         //初始化百度语音
         initBaiDuVoice();
         viewDelegate.hideMainRl(true);
@@ -296,9 +344,27 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         }
     }
 
+    private TextView info_tv;
+
     private Boolean noSettings() {
         String alias = SharedPreferencesUtil.getJpushAlias();
         eqId = SharedPreferencesUtil.getEqId();
+
+
+        Button btn = (Button) findViewById(R.id.clear_btn);
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteAll();
+            }
+        });
+
+        info_tv = (TextView) findViewById(R.id.info_tv);
+        if (eqId != 0 && eqId != -1) {
+            info_tv.setText("设备ID" + eqId);
+        }
+
         return (alias == null || alias.isEmpty() || eqId == -1);
     }
 
@@ -411,8 +477,18 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         if (requestCode == Constants.CHOOSE_SETTINGS_REQUEST_CODE && resultCode == Constants.CHOOSE_SETTINGS_RESULT_CODE) {
             //第一次初始化要获取服务器端正在播放的内容集合
             eqId = data.getLongExtra("eqId", -1);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    info_tv.setText("设备ID" + eqId);
+                }
+            });
+
+
+            int voice = data.getIntExtra("voice", -1);
             if (eqId != -1) {
                 initServiceData(true);
+                ControlVolumeUtil.setControlVolume(this, voice, true);
                 setEquipUsed(eqId, 1);
             }
         } else finish();
@@ -618,7 +694,6 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
             }
         };
 
-        timer = new Timer();
         timer.schedule(task, 0, 7200000);
     }
 
@@ -643,12 +718,13 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         switch (action) {
             //处理内容信息
             case "pushNotice":
+                info_tv.setText("设备Id:" + eqId + " 收到的内容Id:" + contentId);
                 getPublishContent(contentId);
                 break;
             //处理设备信息
             case "newEquipmentNotice":
                 //控制系统音量0-15
-                ControlVolumeUtil.setControlVolume(this, eventBusData.getVoice());
+                ControlVolumeUtil.setControlVolume(this, eventBusData.getVoice(), false);
                 break;
             //处理清空缓存信息
             case "emptyNotice":
@@ -718,7 +794,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         ContentBean contentBean = queryContentById(contentId);
         deleteContentById(contentId);
         if (loadAllValidInformation().size() == 0) {
-            setInfoNull(contentBean.getPublishTypeId());
+            setInfoNull(contentBean.getImgormo());
         }
     }
 
@@ -896,7 +972,6 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                     break;
             }
         }
-        viewDelegate.setTagContent(contentBean.getTagname());
         cutInfoTime = System.currentTimeMillis() - cutInfoTime;
         insertOrReplaceContent(contentBean);
         interCutInfoId = contentBean.getId();
@@ -905,6 +980,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         switch (cutType) {
             //插播的是图文
             case Constants.IS_IMAGE:
+                viewDelegate.setTagContent(contentBean.getTagName());
                 viewDelegate.setCutImgVisibility(true);
                 setLogoAndTitle(true, contentBean.getHeadline());
                 ImgWithTextFragment imgFragment = new ImgWithTextFragment();
@@ -916,6 +992,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                 break;
             //插播的是视频
             case Constants.IS_MOVIE:
+                viewDelegate.setTagContent(null);
                 if (beforeBean != null && beforeBean.getImgormo() == Constants.IS_IMAGE) {
                     setLogoAndTitle(false, contentBean.getHeadline());
                     cutVideoFragment = new VideoFragment();
@@ -940,7 +1017,9 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                 if (cutInfoTime != 0 && loadAllValidInformation().size() != 1) {
                     countDownInformation((beforeBean.getDuration() * 1000 - cutInfoTime + 1000) / 1000);
                 }
-                viewDelegate.setTagContent(beforeBean.getTagname());
+                if (beforeBean.getImgormo() == Constants.IS_IMAGE)
+                    viewDelegate.setTagContent(beforeBean.getTagName());
+                else viewDelegate.setTagContent(null);
                 //插播结束后置成-1
                 interCutInfoId = -1;
                 //如果插播完只有它，那就当正常数据处理
@@ -999,7 +1078,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                 }
             }
             if (hasBgm(beforeBean) && mediaPlayer != null) {
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.start();
             }
         }
@@ -1210,8 +1289,16 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 
     private void showInformation(ContentBean contentBean) {
         if (contentBean != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    info_tv.setText("设备Id:" + eqId + " 正在播的Id:" + contentBean.getId());
+                }
+            });
             contentBean.setSpots(0);
-            viewDelegate.setTagContent(contentBean.getTagname());
+            if (contentBean.getImgormo() == Constants.IS_IMAGE)
+                viewDelegate.setTagContent(contentBean.getTagName());
+            else viewDelegate.setTagContent(null);
             switch (contentBean.getImgormo()) {
                 //是纯图或者图文内容
                 case Constants.IS_IMAGE:
@@ -1312,8 +1399,10 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (timer != null)
+        if (timer != null) {
             timer.cancel();
+            timer.purge();
+        }
         if (mSpeechSynthesizer != null) {
             mSpeechSynthesizer.stop();
             mSpeechSynthesizer.release();//销毁百度语音单例对象

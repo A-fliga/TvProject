@@ -89,10 +89,10 @@ public class ChooseSettingsActivity extends ActivityPresenter<ChooseSettingsActi
     private void initSettings(ChooseSettingsBean.ResultBean resultBean) {
         long id = resultBean.id;
         String alias;
-//        if (BuildConfig.DEBUG) {
-            alias = "CS_touchid" + id;
-//        } else {
-//            alias = Constants.JPUSH_NAME + id;
+////        if (BuildConfig.DEBUG) {
+//            alias = "CS_touchid" + id;
+////        } else {
+        alias = Constants.JPUSH_NAME + id;
 //        }
         //设置极光别名
         MyApplication.getAppContext().setAlisa(alias);
@@ -104,6 +104,7 @@ public class ChooseSettingsActivity extends ActivityPresenter<ChooseSettingsActi
     private void backToMain(ChooseSettingsBean.ResultBean resultBean) {
         Intent intent = new Intent();
         intent.putExtra("eqId", resultBean.id);
+        intent.putExtra("voice", resultBean.voice);
         setResult(Constants.CHOOSE_SETTINGS_RESULT_CODE, intent);
         finish();
     }

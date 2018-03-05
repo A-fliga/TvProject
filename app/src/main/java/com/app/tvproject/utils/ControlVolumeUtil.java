@@ -56,7 +56,7 @@ public class ControlVolumeUtil {
         aCache = ACache.get(MyApplication.getAppContext());
         EqVoiceBean voiceBean = (EqVoiceBean) aCache.getAsObject("voiceBean");
         List<EqVoiceBean.VoiceBean> beanList = voiceBean.getVoiceList();
-        int voice = 0;
+        int voice = -1;
         for (int i = 0; i < beanList.size(); i++) {
             EqVoiceBean.VoiceBean bean = beanList.get(i);
             SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");//年-月-日 时-分
@@ -73,10 +73,7 @@ public class ControlVolumeUtil {
                 e.printStackTrace();
             }
         }
-        if (voice != 0) {
-            return voice;
-        } else
-            return voiceBean.getPublicVoice();
+        return voice == -1 ? voiceBean.getPublicVoice() : voice;
     }
 
 }

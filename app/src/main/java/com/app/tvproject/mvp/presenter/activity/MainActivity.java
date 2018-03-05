@@ -23,7 +23,6 @@ import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ContentBean;
 import com.app.tvproject.mvp.model.data.EventBusData;
 import com.app.tvproject.mvp.model.data.PublishListBean;
-import com.app.tvproject.mvp.model.data.TestBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
 import com.app.tvproject.mvp.model.data.UpdateUseEqBean;
 import com.app.tvproject.mvp.model.data.WeatherBean;
@@ -118,7 +117,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 //        hideUI();
 //        try {
 //            Runtime.getRuntime().exec("su");
-            initAllData();
+        initAllData();
 //        } catch (IOException e) {
 //            ToastUtil.s("没有root权限");
 //            e.printStackTrace();
@@ -187,9 +186,6 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 
                 @Override
                 public void onNext(BaseEntity<UpdateBean> updateBeanBaseEntity) {
-                    TestBean bean = DaoUtil.getTest();
-                    LogUtil.d("dao",bean.getAge()+bean.getName()+bean.getTime()+bean.getMyStringtest333());
-
                     if (updateBeanBaseEntity.getResult() != null && Float.parseFloat(AppUtil.getVersionName()) < Float.parseFloat(updateBeanBaseEntity.getResult().versionNumber)) {
                         //开始下载更新并安装
                         LogUtil.d("qidong", "更新");
@@ -482,22 +478,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Constants.CHOOSE_SETTINGS_REQUEST_CODE && resultCode == Constants.CHOOSE_SETTINGS_RESULT_CODE) {
-            //第一次初始化要获取服务器端正在播放的内容集合
-            eqId = data.getLongExtra("eqId", -1);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    info_tv.setText("设备ID" + eqId);
-                }
-            });
-
-            String voice = data.getStringExtra("voice");
-            if (eqId != -1) {
-                initServiceData(true);
-                ControlVolumeUtil.saveVoice(voice);
-                ControlVolumeUtil.setVolume(this);
-                setEquipUsed(eqId, 1);
-            }
+            setEquipUsed(data, 1);
         } else finish();
     }
 
@@ -850,24 +831,41 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     /**
      * 通知设备已被使用
      */
-    private void setEquipUsed(long id, int used) {
-        PublicModel.getInstance().setEquipmentUsed(new Subscriber<UpdateUseEqBean>() {
-            @Override
-            public void onCompleted() {
+    private void setEquipUsed(Intent data, int used) {
+        if (data != null && data.getLongExtra("eqId", -1) != -1) {
+            PublicModel.getInstance().setEquipmentUsed(new Subscriber<UpdateUseEqBean>() {
+                @Override
+                public void onCompleted() {
 
-            }
+                }
 
-            @Override
-            public void onError(Throwable e) {
+                @Override
+                public void onError(Throwable e) {
+                    ToastUtil.l("出现意外错误，请重启app");
+                }
 
-            }
+                @Override
+                public void onNext(UpdateUseEqBean baseEntity) {
+                    eqId = data.getLongExtra("eqId", -1);
+                    SharedPreferencesUtil.saveEqId(MainActivity.this, eqId);
+                    //第一次初始化要获取服务器端正在播放的内容集合
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            info_tv.setText("设备ID" + eqId);
+                        }
+                    });
+                    String voice = data.getStringExtra("voice");
+                    if (eqId != -1) {
+                        ControlVolumeUtil.saveVoice(voice);
+                        ControlVolumeUtil.setVolume(MainActivity.this);
+                        initServiceData(true);
+                    }
+                    ToastUtil.s("已选中当前设备信息");
+                }
 
-            @Override
-            public void onNext(UpdateUseEqBean baseEntity) {
-                ToastUtil.s("已选中当前设备信息");
-            }
-
-        }, String.valueOf(id), String.valueOf(used));
+            }, String.valueOf(data.getLongExtra("eqId", -1)), String.valueOf(used));
+        } else ToastUtil.l("设备信息有误，请重启app");
     }
 
 

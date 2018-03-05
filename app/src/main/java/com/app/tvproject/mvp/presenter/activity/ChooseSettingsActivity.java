@@ -96,8 +96,6 @@ public class ChooseSettingsActivity extends ActivityPresenter<ChooseSettingsActi
 //        }
         //设置极光别名
         MyApplication.getAppContext().setAlisa(alias);
-        //保存设备id
-        SharedPreferencesUtil.saveEqId(this, id);
         backToMain(resultBean);
     }
 

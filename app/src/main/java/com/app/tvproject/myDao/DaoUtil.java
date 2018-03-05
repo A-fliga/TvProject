@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.app.tvproject.constants.Constants;
 import com.app.tvproject.mvp.model.data.ContentBean;
+import com.app.tvproject.mvp.model.data.TestBean;
 import com.app.tvproject.utils.DownLoadFileManager;
 import com.app.tvproject.utils.LogUtil;
 import com.app.tvproject.utils.SharedPreferencesUtil;
@@ -278,4 +279,10 @@ public class DaoUtil {
                 .orderDesc(ContentBeanDao.Properties.Audiencebelongto).list();
     }
 
+    public static void insertPeopr(TestBean testBean){
+        mManager.getDaoSession().getTestBeanDao().insertOrReplace(testBean);
+    }
+    public static TestBean getTest(){
+        return mManager.getDaoSession().getTestBeanDao().load(1L);
+    }
 }

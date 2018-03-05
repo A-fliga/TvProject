@@ -2,10 +2,12 @@ package com.app.tvproject.myDao;
 
 import android.content.Context;
 
+import com.app.tvproject.greenDaoHelper.MyOpenHelper;
 import com.zh.greendao.DaoMaster;
 import com.zh.greendao.DaoSession;
 
 import org.greenrobot.greendao.query.QueryBuilder;
+
 
 /**
  * Created by www on 2017/11/19.
@@ -40,7 +42,7 @@ public class DaoManager {
      */
     public DaoMaster getDaoMaster(){
         if(sDaoMaster == null) {
-            DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, DB_NAME, null);
+            MyOpenHelper helper = new MyOpenHelper(context, DB_NAME, null);
             sDaoMaster = new DaoMaster(helper.getWritableDatabase());
         }
         return sDaoMaster;

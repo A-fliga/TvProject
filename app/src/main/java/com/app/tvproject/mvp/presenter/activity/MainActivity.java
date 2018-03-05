@@ -3,7 +3,6 @@ package com.app.tvproject.mvp.presenter.activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Looper;
@@ -24,6 +23,7 @@ import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ContentBean;
 import com.app.tvproject.mvp.model.data.EventBusData;
 import com.app.tvproject.mvp.model.data.PublishListBean;
+import com.app.tvproject.mvp.model.data.TestBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
 import com.app.tvproject.mvp.model.data.UpdateUseEqBean;
 import com.app.tvproject.mvp.model.data.WeatherBean;
@@ -33,6 +33,7 @@ import com.app.tvproject.mvp.presenter.fragment.VideoFragment;
 import com.app.tvproject.mvp.view.CustomerView.CustomerVideoView;
 import com.app.tvproject.mvp.view.MainActivityDelegate;
 import com.app.tvproject.myDao.DaoManager;
+import com.app.tvproject.myDao.DaoUtil;
 import com.app.tvproject.receiver.NetBroadCastReceiver;
 import com.app.tvproject.utils.AppUtil;
 import com.app.tvproject.utils.BaiduVoiceUtil;
@@ -50,14 +51,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -190,6 +187,9 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 
                 @Override
                 public void onNext(BaseEntity<UpdateBean> updateBeanBaseEntity) {
+                    TestBean bean = DaoUtil.getTest();
+                    LogUtil.d("dao",bean.getAge()+bean.getName()+bean.getTime()+bean.getMyStringtest333());
+
                     if (updateBeanBaseEntity.getResult() != null && Float.parseFloat(AppUtil.getVersionName()) < Float.parseFloat(updateBeanBaseEntity.getResult().versionNumber)) {
                         //开始下载更新并安装
                         LogUtil.d("qidong", "更新");
@@ -286,11 +286,18 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
 //    }
 
     private void initServiceData(Boolean deleteAll) {
-        if (SharedPreferencesUtil.getVoice() != 0)
-            ControlVolumeUtil.setControlVolume(this, SharedPreferencesUtil.getVoice(), false);
+        if (ControlVolumeUtil.getVoice() != 0)
+            ControlVolumeUtil.setVolume(this);
         //初始化百度语音
         initBaiDuVoice();
         viewDelegate.hideMainRl(true);
+//        TestBean bean = new TestBean();
+//        bean.setId(1);
+//        bean.setAge(10);
+//        bean.setName("asd");
+//        bean.setTime(6666);
+//        bean.setMyStringtest333("我是好阿萨德号阿萨德号");
+//        DaoUtil.insertPeopr(bean);
         checkUpdate(deleteAll);
     }
 
@@ -484,11 +491,11 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                 }
             });
 
-
-            int voice = data.getIntExtra("voice", -1);
+            String voice = data.getStringExtra("voice");
             if (eqId != -1) {
                 initServiceData(true);
-                ControlVolumeUtil.setControlVolume(this, voice, true);
+                ControlVolumeUtil.saveVoice(voice);
+                ControlVolumeUtil.setVolume(this);
                 setEquipUsed(eqId, 1);
             }
         } else finish();
@@ -724,7 +731,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
             //处理设备信息
             case "newEquipmentNotice":
                 //控制系统音量0-15
-                ControlVolumeUtil.setControlVolume(this, eventBusData.getVoice(), false);
+//                ControlVolumeUtil.setControlVolume(this, eventBusData.getVoice(), false);
                 break;
             //处理清空缓存信息
             case "emptyNotice":
@@ -936,7 +943,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     }
 
     private synchronized void startInterCutInfo(ContentBean contentBean) {
-        isCutting = true;
+        ControlVolumeUtil.setVolume(this);
         if (informationTask != null)
             informationTask.cancel();
         ContentBean beforeBean = queryContentById(SharedPreferencesUtil.getInformationId());
@@ -1218,6 +1225,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     public synchronized void nextInformation(boolean noAddPosition) {
         if (interCutInfoTask != null)
             interCutInfoTask.cancel();
+        ControlVolumeUtil.setVolume(this);
         List<ContentBean> informationList = loadAllValidInformation();
         LogUtil.w("ceshi", "开始下一条：informationList.size()=" + informationList.size() + " " + noAddPosition);
         if (informationList.size() == 0) {

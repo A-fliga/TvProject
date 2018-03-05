@@ -42,34 +42,6 @@ public class SharedPreferencesUtil {
         return sharedPreference.getString(Constants.JI_GUANG_TAG, null);
     }
 
-    /**
-     * 保存设备音量
-     */
-    public static void saveVoice(int voice) {
-        if (sharedPreference == null) {
-            sharedPreference = MyApplication.getContext()
-                    .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
-        }
-        editor = sharedPreference.edit();
-        editor.putInt(Constants.EQ_VOICE, voice);
-        editor.apply();
-    }
-
-
-    /**
-     * 取出音量
-     *
-     * @param
-     * @return
-     */
-    public static int getVoice() {
-        if (sharedPreference == null) {
-            sharedPreference = MyApplication.getContext()
-                    .getSharedPreferences(Constants.TV_PROJECT_SHARED_NAME, Context.MODE_PRIVATE);
-        }
-        return sharedPreference.getInt(Constants.EQ_VOICE, 0);
-    }
-
 
     /**
      * 保存正在播放的资讯ID

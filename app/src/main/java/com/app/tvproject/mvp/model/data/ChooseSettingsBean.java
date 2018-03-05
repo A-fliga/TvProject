@@ -23,7 +23,7 @@ public class ChooseSettingsBean {
          * id : 22
          * names : yui社区
          */
-        public int voice;
+        public String voice;
         public String dormantStartTime;
         public String 资讯;
         public int 广告;

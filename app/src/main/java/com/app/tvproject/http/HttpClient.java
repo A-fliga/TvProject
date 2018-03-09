@@ -5,6 +5,7 @@ import com.app.tvproject.constants.Constants;
 import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ChooseSettingsBean;
 import com.app.tvproject.mvp.model.data.ContentBean;
+import com.app.tvproject.mvp.model.data.EqInformationBean;
 import com.app.tvproject.mvp.model.data.PublishListBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
 import com.app.tvproject.mvp.model.data.UpdateUseEqBean;
@@ -208,5 +209,15 @@ public final class HttpClient {
         queryMap.put("type","2");
         Observable observable = mApi.getUpdateInfo(queryMap);
         toSubscribe(observable,subscriber);
+    }
+
+    /**
+     * 获取设备相关信息
+     */
+    public void getEqInfo(Subscriber<BaseEntity<EqInformationBean>> subscriber, String eqId) {
+        HashMap<String, String> queryMap = new HashMap<>();
+        queryMap.put("eqId", eqId);
+        Observable observable = mApi.getEqInfo(queryMap);
+        toSubscribe(observable, subscriber);
     }
 }

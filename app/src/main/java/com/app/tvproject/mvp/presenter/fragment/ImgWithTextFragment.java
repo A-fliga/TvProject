@@ -50,8 +50,7 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
         if (contentBean.getTransformsound() == 1) {
             if (contentBean.getSpots() == Constants.IS_SPOTS) {
                 speechSynthesizer = BaiduVoiceUtil.initTTs();
-            }
-            else speechSynthesizer = activity.getSpeechSynthesizer();
+            } else speechSynthesizer = activity.getSpeechSynthesizer();
             String text = contentBean.getContent().replaceAll(" ", "").replaceAll("\r|\n", "");
             String[] data = text.split("\\*");
             for (String aData : data) {
@@ -60,11 +59,12 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
         }
         //如果不需要转语音，且有背景音乐，就去播放背景音乐
         else if (contentBean.getBgm() != null && !contentBean.getBgm().isEmpty()) {
-            if (contentBean.getSpots() == Constants.IS_SPOTS)
+            if (contentBean.getSpots() == Constants.IS_SPOTS) {
+                stopMediaPlayer();
                 mediaPlayer = new MediaPlayer();
-            else {
+            } else {
                 mediaPlayer = activity.getMediaPlayer();
-                LogUtil.d("idceshi","fragment里的id："+mediaPlayer.toString());
+                LogUtil.d("idceshi", "fragment里的id：" + mediaPlayer.toString());
             }
             try {
 //                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -73,8 +73,7 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
 
                 mediaPlayer.setOnPreparedListener(mp -> mediaPlayer.start());
                 mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                    mediaPlayer.stop();
-                    mediaPlayer.release();
+                    stopMediaPlayer();
                     return false;
                 });
             } catch (IOException e) {
@@ -88,8 +87,12 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
     }
 
 
-    public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
+    public void stopMediaPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
 
@@ -128,10 +131,7 @@ public class ImgWithTextFragment extends FragmentPresenter<ImgWithTextDelegate> 
             speechSynthesizer.stop();
         }
         try {
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-            }
+            stopMediaPlayer();
         } catch (IllegalStateException e) {
 
         }

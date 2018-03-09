@@ -3,6 +3,7 @@ package com.app.tvproject.http;
 import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ChooseSettingsBean;
 import com.app.tvproject.mvp.model.data.ContentBean;
+import com.app.tvproject.mvp.model.data.EqInformationBean;
 import com.app.tvproject.mvp.model.data.PublishListBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
 import com.app.tvproject.mvp.model.data.UpdateUseEqBean;
@@ -86,4 +87,11 @@ public interface Api {
      */
     @GET("getTouchUpdate")
     Observable<BaseEntity<UpdateBean>> getUpdateInfo(@QueryMap Map<String, String> map);
+
+
+    /**
+     * 获取设备相关信息
+     */
+    @POST("getEqDetail")
+    Observable<BaseEntity<EqInformationBean>> getEqInfo(@QueryMap Map<String,String> map);
 }

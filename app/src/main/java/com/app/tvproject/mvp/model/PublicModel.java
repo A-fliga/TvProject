@@ -4,6 +4,7 @@ import com.app.tvproject.http.HttpClient;
 import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ChooseSettingsBean;
 import com.app.tvproject.mvp.model.data.ContentBean;
+import com.app.tvproject.mvp.model.data.EqInformationBean;
 import com.app.tvproject.mvp.model.data.PublishListBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
 import com.app.tvproject.mvp.model.data.UpdateUseEqBean;
@@ -96,7 +97,19 @@ public class PublicModel implements IModel {
         HttpClient.getInstance().dowLoadFile(subscriber, url);
     }
 
+    /**
+     * 更新APP
+     */
     public void getUpdateInfo(Subscriber<BaseEntity<UpdateBean>> subscriber){
         HttpClient.getInstance().getUpdateInfo(subscriber);
+    }
+
+    /**
+     * 获取设备相关信息
+     */
+    public void getEqInfo(Subscriber<BaseEntity<EqInformationBean>> subscriber, String eqId) {
+        if(NetUtil.isConnect()){
+            HttpClient.getInstance().getEqInfo(subscriber,eqId);
+        }
     }
 }

@@ -21,6 +21,7 @@ import com.app.tvproject.constants.Constants;
 import com.app.tvproject.mvp.model.PublicModel;
 import com.app.tvproject.mvp.model.data.BaseEntity;
 import com.app.tvproject.mvp.model.data.ContentBean;
+import com.app.tvproject.mvp.model.data.EqInformationBean;
 import com.app.tvproject.mvp.model.data.EventBusData;
 import com.app.tvproject.mvp.model.data.PublishListBean;
 import com.app.tvproject.mvp.model.data.UpdateBean;
@@ -32,7 +33,6 @@ import com.app.tvproject.mvp.presenter.fragment.VideoFragment;
 import com.app.tvproject.mvp.view.CustomerView.CustomerVideoView;
 import com.app.tvproject.mvp.view.MainActivityDelegate;
 import com.app.tvproject.myDao.DaoManager;
-import com.app.tvproject.myDao.DaoUtil;
 import com.app.tvproject.receiver.NetBroadCastReceiver;
 import com.app.tvproject.utils.AppUtil;
 import com.app.tvproject.utils.BaiduVoiceUtil;
@@ -233,67 +233,10 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
         });
     }
 
-//    private int startInstallApk(String apkPath) {
-////        boolean result = false;
-////        DataOutputStream dataOutputStream = null;
-////        BufferedReader errorStream = null;
-////        try {
-////            ToastUtil.l("正在执行安装");
-////            // 申请su权限
-////            Process process = Runtime.getRuntime().exec("su");
-////            dataOutputStream = new DataOutputStream(process.getOutputStream());
-////            // 执行pm install命令
-////            String command = "pm install -r " + apkPath + "\n";
-////            dataOutputStream.write(command.getBytes(Charset.forName("utf-8")));
-////            dataOutputStream.flush();
-////            dataOutputStream.writeBytes("exit\n");
-////            dataOutputStream.flush();
-////            process.waitFor();
-////            errorStream = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-////            String msg = "";
-////            String line;
-////            // 读取命令的执行结果
-////            while ((line = errorStream.readLine()) != null) {
-////                msg += line;
-////            }
-////            ToastUtil.l(msg);
-////            Log.d("TAG", "install msg is " + msg);
-////            // 如果执行结果中包含Failure字样就认为是安装失败，否则就认为安装成功
-////            if (!msg.contains("Failure")) {
-////                result = true;
-////            }
-////        } catch (Exception e) {
-////            ToastUtil.s("安装失败" + e.getMessage());
-////            Log.e("TAG", e.getMessage(), e);
-////        } finally {
-////            try {
-////                if (dataOutputStream != null) {
-////                    dataOutputStream.close();
-////                }
-////                if (errorStream != null) {
-////                    errorStream.close();
-////                }
-////            } catch (IOException e) {
-////                Log.e("TAG", e.getMessage(), e);
-////            }
-////        }
-//        int result = ;
-//        return result;
-//    }
-
     private void initServiceData(Boolean deleteAll) {
-        if (ControlVolumeUtil.getVoice() != 0)
-            ControlVolumeUtil.setVolume(this);
         //初始化百度语音
         initBaiDuVoice();
         viewDelegate.hideMainRl(true);
-//        TestBean bean = new TestBean();
-//        bean.setId(1);
-//        bean.setAge(10);
-//        bean.setName("asd");
-//        bean.setTime(6666);
-//        bean.setMyStringtest333("我是好阿萨德号阿萨德号");
-//        DaoUtil.insertPeopr(bean);
         checkUpdate(deleteAll);
     }
 
@@ -372,12 +315,33 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     }
 
     private void getPublishList(Boolean deleteAll, Boolean clearShared) {
-        if (NetUtil.isConnectNoToast())
+        if (NetUtil.isConnectNoToast()) {
+            getEqInfo();
             getPublishDetailList(eqId, deleteAll, clearShared);
-        else {
+        } else {
             // 没网络就只播放本地数据库的内容
             startLocalDataPlay();
         }
+    }
+
+    //获取设备信息
+    private void getEqInfo() {
+        PublicModel.getInstance().getEqInfo(new Subscriber<BaseEntity<EqInformationBean>>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                ToastUtil.l("获取设备信息错误，请重启");
+            }
+
+            @Override
+            public void onNext(BaseEntity<EqInformationBean> eqInformationBeanBaseEntity) {
+                ControlVolumeUtil.saveVoice(eqInformationBeanBaseEntity.getResult().voice);
+            }
+        }, String.valueOf(eqId));
     }
 
     private void initNotice() {
@@ -858,7 +822,6 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
                     String voice = data.getStringExtra("voice");
                     if (eqId != -1) {
                         ControlVolumeUtil.saveVoice(voice);
-                        ControlVolumeUtil.setVolume(MainActivity.this);
                         initServiceData(true);
                     }
                     ToastUtil.s("已选中当前设备信息");
@@ -1048,11 +1011,7 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
             if (mSpeechSynthesizer != null)
                 mSpeechSynthesizer.stop();
             if (hasBgm(cutBean)) {
-                MediaPlayer mediaPlayer = cutImgFragment.getMediaPlayer();
-                if (mediaPlayer != null) {
-                    mediaPlayer.stop();
-                    mediaPlayer.release();
-                }
+                cutImgFragment.stopMediaPlayer();
             }
         }
         //插播的是视频，完后要把插播的视图隐藏
@@ -1356,17 +1315,18 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     }
 
     private void stopVoiceAndVideo() {
-        if (videoFragment != null) {
-            VideoView videoView = videoFragment.getVideoView();
-            if (videoView != null && videoView.isPlaying()) {
-                videoView.pause();
-                videoView.stopPlayback();
-            }
-        }
-        if (getSpeechSynthesizer() != null) {
-            mSpeechSynthesizer.stop();
-        }
         try {
+            if (videoFragment != null) {
+                VideoView videoView = videoFragment.getVideoView();
+                if (videoView != null && videoView.isPlaying()) {
+                    videoView.pause();
+                    videoView.stopPlayback();
+                }
+            }
+            if (getSpeechSynthesizer() != null) {
+                mSpeechSynthesizer.stop();
+            }
+
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
                 mediaPlayer.release();
@@ -1398,6 +1358,11 @@ public class MainActivity extends ActivityPresenter<MainActivityDelegate> implem
     }
 
     public MediaPlayer getMediaPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         mediaPlayer = new MediaPlayer();
         return mediaPlayer;
     }

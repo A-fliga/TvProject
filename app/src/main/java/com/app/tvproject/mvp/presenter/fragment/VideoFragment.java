@@ -136,18 +136,22 @@ public class VideoFragment extends FragmentPresenter<VideoFragmentDelegate> {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (!isSpots) {
-            if (videoView != null && videoView.isPlaying()) {
-                videoView.pause();
-                videoView.stopPlayback();
-                LogUtil.w("xiaohui", "视频fragment被销毁");
+        try {
+            if (!isSpots) {
+                if (videoView != null && videoView.isPlaying()) {
+                    videoView.pause();
+                    videoView.stopPlayback();
+                    LogUtil.w("xiaohui", "视频fragment被销毁");
+                }
+            } else {
+                if (cut_videoView != null && cut_videoView.isPlaying()) {
+                    cut_videoView.pause();
+                    cut_videoView.stopPlayback();
+                    LogUtil.w("xiaohui", "视频fragment被销毁");
+                }
             }
-        } else {
-            if (cut_videoView != null && cut_videoView.isPlaying()) {
-                cut_videoView.pause();
-                cut_videoView.stopPlayback();
-                LogUtil.w("xiaohui", "视频fragment被销毁");
-            }
+        } catch (IllegalStateException e) {
+
         }
     }
 }

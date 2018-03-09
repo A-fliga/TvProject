@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.app.tvproject.constants.Constants;
 import com.app.tvproject.mvp.model.data.ContentBean;
-import com.app.tvproject.mvp.model.data.TestBean;
 import com.app.tvproject.utils.DownLoadFileManager;
 import com.app.tvproject.utils.LogUtil;
 import com.app.tvproject.utils.SharedPreferencesUtil;
@@ -263,7 +262,6 @@ public class DaoUtil {
 
 
     //无其他条件查询所有noticeList
-    //TODO  要加入updateTime对比  根据upDataTime正序查询
     private static List<ContentBean> loadAllNotice() {
         return mManager.getDaoSession().getContentBeanDao().queryBuilder().where(ContentBeanDao.Properties.
                 PublishTypeId.eq(Constants.PUBLISH_TYPE_NOTICE)).orderAsc(ContentBeanDao.Properties.Sort)
@@ -279,10 +277,4 @@ public class DaoUtil {
                 .orderDesc(ContentBeanDao.Properties.Audiencebelongto).list();
     }
 
-    public static void insertPeopr(TestBean testBean){
-        mManager.getDaoSession().getTestBeanDao().insertOrReplace(testBean);
-    }
-    public static TestBean getTest(){
-        return mManager.getDaoSession().getTestBeanDao().load(1L);
-    }
 }
